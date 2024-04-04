@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# ANSI color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to generate a random password
+generate_password() {
+    local length=$1
+    local composition=$2
+    local password
+
+    # Define character sets
+    local alphabets="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    local numbers="0123456789"
+    local special="!@#$%^&*()-_=+{}[]:;<>,.?/"
+
+    # Select characters based on composition
+    local characters="$alphabets"
+    if [ "$composition" == "alphanumeric" ]; then
+        characters="${characters}${numbers}"
+    elif [ "$composition" == "special" ]; then
+        characters="${characters}${numbers}${special}"
+    fi
+
+    # Generate random password
+    for ((i = 0; i < length; i++)); do
+        password="${password}${characters:RANDOM%${#characters}:1}"
+    done
+
+    echo -e "${NC}Generated Password: ${GREEN}$password${NC}"
+}
+
+# Main script starts here
+echo -e "${YELLOW}Welcome to the Secure Password Generator${NC}"
+
+# Interactive menu
+PS3='Please enter your choice: '
+options=("Alphabets only" "Alphanumeric" "Alphanumeric + Special Characters" "Quit")
+select opt in "${options[@]}"
+do
+    case $opt in
+        "Alphabets only")
+            composition="alphabet"
+            break
+            ;;
+        "Alphanumeric")
+            composition="alphanumeric"
+            break
+            ;;
+        "Alphanumeric + Special Characters")
+            composition="special"
+            break
+            ;;
+        "Quit")
+            echo "Exiting..."
+            exit
+            ;;
+        *) echo -e "${RED}Invalid option $REPLY. Please select 1, 2, 3, or 4.${NC}";;
+    esac
+done
+
+# Prompt user for password length with validation
+while true; do
+    read -p "Enter the desired length of the password: " length
+    if ! [[ "$length" =~ ^[0-9]+$ ]] || [ "$length" -le 0 ]; then
+        echo -e "${RED}Error: Please enter a valid positive integer for the password length.${NC}"
+    else
+        break
+    fi
+done
+
+# Generate and display the password
+generate_password "$length" "$composition"
